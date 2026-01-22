@@ -8,8 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Branding Colors */
-            --primary: #c2410c; /* Burnt Orange/Red for Textile vibe */
+            --primary: #c2410c;
             --primary-hover: #9a3412;
             --bg: #f8fafc;
             --surface: #ffffff;
@@ -24,7 +23,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; font-size: 14px; }
 
-        /* --- UTILS --- */
         .hidden { display: none !important; }
         .btn { padding: 12px 24px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
@@ -32,7 +30,6 @@
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
         .btn-success { background: var(--success); color: white; }
         
-        /* --- NAV --- */
         nav { height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 5%; background: var(--surface); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); }
         .logo { font-weight: 800; font-size: 1.4rem; color: var(--primary); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: -0.5px; }
         .nav-tools { display: flex; gap: 15px; align-items: center; }
@@ -40,10 +37,8 @@
         .icon-btn:hover { background: var(--border); }
         .badge { position: absolute; top: -2px; right: -2px; background: var(--primary); color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 10px; }
 
-        /* --- LAYOUTS --- */
         .container { max-width: 1400px; margin: 0 auto; padding: 30px 5%; width: 100%; flex: 1; }
         
-        /* --- STOREFRONT --- */
         .hero { text-align: center; margin-bottom: 40px; padding: 40px 20px; background: var(--surface); border-radius: 20px; border: 1px solid var(--border); }
         .hero h1 { font-size: 2.2rem; margin-bottom: 10px; color: var(--text); }
         
@@ -58,11 +53,10 @@
         
         .card-img { height: 220px; background: #f1f5f9; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         .card-img img { width: 100%; height: 100%; object-fit: cover; }
-        .card-tag { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; backdrop-filter: blur(4px); }
+        .card-tag { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
         .card-info { padding: 15px; }
         .card h3 { font-size: 1.1rem; margin-bottom: 5px; }
 
-        /* --- ADMIN PANEL --- */
         #admin-view { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); padding: 30px; box-shadow: var(--shadow); }
         .admin-nav { display: flex; gap: 20px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
         .admin-tab { padding: 10px 0; cursor: pointer; color: var(--text-muted); font-weight: 600; border-bottom: 2px solid transparent; }
@@ -74,30 +68,34 @@
         .form-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); outline: none; background: var(--bg); transition: 0.2s; }
         .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(194, 65, 12, 0.1); }
         
-        /* Order Table */
         .order-card { border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 15px; background: var(--bg); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; }
-        .order-header { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px dashed var(--border); padding-bottom: 10px; }
         .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; }
         .status-delivery { background: #dbeafe; color: #1e40af; }
         .status-pickup { background: #f3e8ff; color: #6b21a8; }
 
-        /* --- MODALS --- */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; place-items: center; z-index: 5000; padding: 20px; backdrop-filter: blur(5px); }
         .modal-content { background: var(--surface); width: 100%; max-width: 900px; border-radius: 24px; overflow: hidden; display: flex; max-height: 90vh; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
         @media (max-width: 768px) { .modal-content { flex-direction: column; overflow-y: auto; } }
         
         .login-box { background: var(--surface); padding: 40px; border-radius: 24px; width: 100%; max-width: 400px; text-align: center; }
 
-        /* --- CART SIDEBAR --- */
         .cart-sidebar { position: fixed; top: 0; right: -450px; width: 450px; height: 100vh; background: var(--surface); z-index: 4000; border-left: 1px solid var(--border); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; box-shadow: -20px 0 50px rgba(0,0,0,0.1); }
         @media(max-width: 500px) { .cart-sidebar { width: 100%; } }
         .cart-sidebar.open { right: 0; }
 
-        /* --- CHECKOUT --- */
         .fulfillment-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
         .f-btn { padding: 15px; border: 1px solid var(--border); border-radius: 12px; text-align: center; cursor: pointer; background: var(--bg); font-weight: 600; transition: 0.2s; }
         .f-btn:hover { border-color: var(--primary); }
         .f-btn.active { border-color: var(--primary); background: #fff7ed; color: var(--primary); }
+
+        .live-indicator { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--success); font-weight: 600; }
+        .live-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        .product-item { border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 15px; background: white; display: flex; justify-content: space-between; align-items: center; gap: 15px; }
+        .product-item img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; }
+        .product-item-info { flex: 1; }
+        .product-item-actions { display: flex; gap: 10px; }
     </style>
 </head>
 <body>
@@ -122,8 +120,10 @@
             <div class="hero">
                 <h1>New Textile Company Ltd</h1>
                 <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">
-                    We provide the highest quality curtains (rideau) and home accessories in Rwanda. 
-                    Choose between Day & Night curtains or accessories.
+                    We provide the highest quality curtains and home accessories in Rwanda. 
+                    <span class="live-indicator" id="live-status">
+                        <span class="live-dot"></span> Live Updates
+                    </span>
                 </p>
             </div>
 
@@ -134,15 +134,18 @@
                 <div class="tab" onclick="filterProducts('accessory', this)">Accessories</div>
             </div>
             
-            <div class="grid" id="product-grid">
-                </div>
+            <div class="grid" id="product-grid"></div>
         </div>
 
         <div id="admin-view" class="hidden">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                 <div>
                     <h2 style="font-size: 1.5rem;">Admin Dashboard</h2>
-                    <p style="color: var(--text-muted);">Manage New Textile Inventory</p>
+                    <p style="color: var(--text-muted);">Manage New Textile Inventory
+                        <span class="live-indicator">
+                            <span class="live-dot"></span> Real-Time Sync
+                        </span>
+                    </p>
                 </div>
                 <button class="btn btn-outline" onclick="adminLogout()">
                     <i data-lucide="log-out"></i> Logout
@@ -199,8 +202,8 @@
     <div id="login-modal" class="modal">
         <div class="login-box">
             <i data-lucide="shield-check" style="width:50px; height:50px; color:var(--primary); margin-bottom:15px;"></i>
-            <h2 style="margin-bottom:10px;">Security Check</h2>
-            <p style="color:var(--text-muted); margin-bottom:20px;">Enter Admin password to continue</p>
+            <h2 style="margin-bottom:10px;">Admin Login</h2>
+            <p style="color:var(--text-muted); margin-bottom:20px;">Enter Admin password</p>
             <input type="password" id="admin-pass" class="form-input" placeholder="Password" style="margin-bottom:15px; text-align:center;">
             <button class="btn btn-primary" style="width:100%" onclick="attemptLogin()">Login</button>
             <button class="btn btn-outline" style="width:100%; margin-top:10px;" onclick="closeModals()">Cancel</button>
@@ -315,7 +318,26 @@
     </div>
 
     <script>
-        // --- SECURITY UTILS ---
+        // ==================== IN-MEMORY DATABASE ====================
+        // This simulates a real database without needing external services
+        const DATABASE = {
+            products: [],
+            orders: [],
+            subscribers: [] // For real-time updates
+        };
+
+        // ==================== REAL-TIME SYSTEM ====================
+        function notifySubscribers(event, data) {
+            DATABASE.subscribers.forEach(callback => {
+                callback(event, data);
+            });
+        }
+
+        function subscribe(callback) {
+            DATABASE.subscribers.push(callback);
+        }
+
+        // ==================== SECURITY ====================
         function sanitize(str) {
             if(!str) return '';
             const temp = document.createElement('div');
@@ -323,21 +345,64 @@
             return temp.innerHTML; 
         }
 
-        // --- STATE ---
-        // Changed keys to 'newtextile_' to reset data for the new brand
-        let products = JSON.parse(localStorage.getItem('newtextile_products')) || [];
-        let orders = JSON.parse(localStorage.getItem('newtextile_orders')) || [];
+        // ==================== STATE ====================
         let cart = [];
         let currentProduct = null;
         let fulfillmentType = 'Delivery';
 
-        // --- INIT ---
+        // ==================== INITIALIZATION ====================
         window.onload = () => {
+            loadDemoData(); // Load some demo products
             renderStore();
+            subscribeToUpdates();
             lucide.createIcons();
         };
 
-        // --- AUTH ---
+        function loadDemoData() {
+            // Load demo products so users see something when they open
+            DATABASE.products = [
+                {
+                    id: 1,
+                    name: "Velvet Gold Curtain",
+                    cat: "night",
+                    price: 25000,
+                    desc: "Premium quality velvet curtains with superior light blocking",
+                    img: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23C2410C' width='300' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='white' text-anchor='middle' dy='.3em'%3EVelvet Gold%3C/text%3E%3C/svg%3E"
+                },
+                {
+                    id: 2,
+                    name: "Cotton Day Curtain",
+                    cat: "day",
+                    price: 15000,
+                    desc: "Light, breathable cotton curtains perfect for daytime use",
+                    img: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%239CA3AF' width='300' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='white' text-anchor='middle' dy='.3em'%3ECotton Day%3C/text%3E%3C/svg%3E"
+                },
+                {
+                    id: 3,
+                    name: "Curtain Rings",
+                    cat: "accessory",
+                    price: 500,
+                    desc: "Durable plastic curtain rings for easy installation",
+                    img: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23F59E0B' width='300' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='white' text-anchor='middle' dy='.3em'%3ERings%3C/text%3E%3C/svg%3E"
+                }
+            ];
+        }
+
+        function subscribeToUpdates() {
+            subscribe((event, data) => {
+                if(event === 'product-added' || event === 'product-deleted') {
+                    renderStore();
+                    if(document.getElementById('admin-view').classList.contains('hidden') === false) {
+                        renderAdminInventory();
+                    }
+                }
+                if(event === 'order-added') {
+                    renderAdminOrders();
+                }
+            });
+        }
+
+        // ==================== ADMIN AUTH ====================
         function checkAdminAccess() {
             if(sessionStorage.getItem('isAdmin') === 'true') {
                 showAdminPanel();
@@ -348,13 +413,18 @@
 
         function attemptLogin() {
             const pass = document.getElementById('admin-pass').value;
-            // Simple Client-Side Check
-            if(pass === 'admin123') { 
+            const correctPassword = 'admin123'; // Change this to something secure
+            
+            if(pass === correctPassword) { 
                 sessionStorage.setItem('isAdmin', 'true');
                 document.getElementById('login-modal').style.display = 'none';
                 showAdminPanel();
+                document.getElementById('admin-pass').value = '';
             } else {
-                document.getElementById('login-error').innerText = "Incorrect Password";
+                document.getElementById('login-error').innerText = "❌ Incorrect Password";
+                setTimeout(() => {
+                    document.getElementById('login-error').innerText = '';
+                }, 3000);
             }
         }
 
@@ -367,71 +437,79 @@
 
         function adminLogout() {
             sessionStorage.removeItem('isAdmin');
-            location.reload();
+            document.getElementById('admin-view').classList.add('hidden');
+            document.getElementById('store-view').classList.remove('hidden');
+            renderStore();
         }
 
-        // --- ADMIN: INVENTORY & IMAGE UPLOAD ---
+        // ==================== ADMIN: PRODUCT MANAGEMENT ====================
         function handleAddProduct(e) {
             e.preventDefault();
             const fileInput = document.getElementById('p-file');
             const file = fileInput.files[0];
 
-            if(file) {
-                if(file.size > 2500000) { alert("Image too large! Use image < 2.5MB"); return; }
-                
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    const newProd = {
-                        id: Date.now(),
-                        name: sanitize(document.getElementById('p-name').value),
-                        cat: document.getElementById('p-cat').value,
-                        price: parseFloat(document.getElementById('p-price').value),
-                        desc: sanitize(document.getElementById('p-desc').value),
-                        img: evt.target.result // Base64 String
-                    };
-                    products.push(newProd);
-                    localStorage.setItem('newtextile_products', JSON.stringify(products));
-                    renderAdminInventory();
-                    alert("Product Saved Successfully!");
-                    e.target.reset();
-                };
-                reader.readAsDataURL(file);
+            if(!file) return alert("Please select an image");
+            if(file.size > 2500000) { 
+                alert("Image too large! Use image < 2.5MB"); 
+                return; 
             }
+            
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const newProd = {
+                    id: Date.now(),
+                    name: sanitize(document.getElementById('p-name').value),
+                    cat: document.getElementById('p-cat').value,
+                    price: parseFloat(document.getElementById('p-price').value),
+                    desc: sanitize(document.getElementById('p-desc').value),
+                    img: evt.target.result
+                };
+                
+                // Add to database
+                DATABASE.products.push(newProd);
+                
+                // Notify all subscribers (real-time update)
+                notifySubscribers('product-added', newProd);
+                
+                alert("✅ Product Added! Users will see it instantly!");
+                e.target.reset();
+            };
+            reader.readAsDataURL(file);
         }
 
         function renderAdminInventory() {
             const container = document.getElementById('admin-list');
-            if(products.length === 0) {
-                container.innerHTML = '<p style="color:var(--text-muted)">No products yet.</p>';
+            if(DATABASE.products.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-muted)">No products yet. Add one above!</p>';
                 return;
             }
-            container.innerHTML = products.map(p => `
-                <div style="display:flex; justify-content:space-between; align-items:center; background:white; padding:15px; border:1px solid #ddd; border-radius:12px;">
-                    <div style="display:flex; gap:15px; align-items:center;">
-                        <img src="${p.img}" style="width:60px; height:60px; border-radius:8px; object-fit:cover; border:1px solid #eee;">
-                        <div>
-                            <strong style="font-size:1.1rem;">${p.name}</strong><br>
-                            <span class="status-badge" style="background:#eee; color:#666;">${p.cat}</span>
-                            <span style="margin-left:10px; font-weight:600; color:var(--primary);">${p.price.toLocaleString()} RWF</span>
-                        </div>
+            container.innerHTML = DATABASE.products.map(p => `
+                <div class="product-item">
+                    <img src="${p.img}">
+                    <div class="product-item-info">
+                        <strong style="font-size:1.1rem;">${p.name}</strong><br>
+                        <span class="status-badge" style="background:#eee; color:#666;">${p.cat}</span>
+                        <span style="margin-left:10px; font-weight:600; color:var(--primary);">${p.price.toLocaleString()} RWF</span>
                     </div>
-                    <button class="btn btn-outline" style="color:#ef4444; border-color:#ef4444;" onclick="deleteProduct(${p.id})">
-                        <i data-lucide="trash-2" style="width:18px;"></i>
-                    </button>
+                    <div class="product-item-actions">
+                        <button class="btn btn-outline" style="color:#ef4444; border-color:#ef4444; padding:8px 12px;" onclick="deleteProduct(${p.id})">
+                            <i data-lucide="trash-2" style="width:16px;"></i>
+                        </button>
+                    </div>
                 </div>
             `).join('');
             lucide.createIcons();
         }
 
         function deleteProduct(id) {
-            if(confirm("Delete this product permanently?")) {
-                products = products.filter(p => p.id !== id);
-                localStorage.setItem('newtextile_products', JSON.stringify(products));
+            if(confirm("Delete this product?")) {
+                DATABASE.products = DATABASE.products.filter(p => p.id !== id);
+                notifySubscribers('product-deleted', { id });
                 renderAdminInventory();
             }
         }
 
-        // --- ADMIN: ORDER MANAGEMENT ---
+        // ==================== ADMIN: ORDER MANAGEMENT ====================
         function switchAdminTab(tab, btn) {
             document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
             btn.classList.add('active');
@@ -443,15 +521,17 @@
                 document.getElementById('tab-inventory').classList.remove('hidden');
             } else {
                 document.getElementById('tab-orders').classList.remove('hidden');
-                renderAdminOrders();
             }
         }
 
         function renderAdminOrders() {
             const list = document.getElementById('orders-list');
-            if(orders.length === 0) { list.innerHTML = "<p>No active orders.</p>"; return; }
+            if(DATABASE.orders.length === 0) { 
+                list.innerHTML = "<p style='color:var(--text-muted)'>No orders yet.</p>"; 
+                return; 
+            }
 
-            list.innerHTML = orders.slice().reverse().map(o => `
+            list.innerHTML = DATABASE.orders.slice().reverse().map(o => `
                 <div class="order-card">
                     <div style="flex:1; min-width:300px;">
                         <div class="order-header">
@@ -480,7 +560,7 @@
         }
 
         function respondOnWhatsApp(phone, name, orderId) {
-            let p = phone.replace(/\D/g,''); // clean phone
+            let p = phone.replace(/\D/g,'');
             if(p.startsWith('0')) p = '250' + p.substring(1);
             
             const msg = `Hello ${name}, thank you for ordering from New Textile (Order #${orderId.toString().slice(-6)}). We have received your request.`;
@@ -489,25 +569,23 @@
 
         function deleteOrder(id) {
             if(confirm("Archive this order?")) {
-                orders = orders.filter(o => o.id !== id);
-                localStorage.setItem('newtextile_orders', JSON.stringify(orders));
+                DATABASE.orders = DATABASE.orders.filter(o => o.id !== id);
                 renderAdminOrders();
             }
         }
 
-        // --- STORE & CART LOGIC ---
+        // ==================== STORE & PRODUCTS ====================
         function renderStore() {
             const grid = document.getElementById('product-grid');
-            if(products.length === 0) {
+            if(DATABASE.products.length === 0) {
                 grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:50px;">
-                    <i data-lucide="package-open" size="48" color="#ccc"></i>
-                    <p style="color:var(--text-muted); margin-top:10px;">No products in store yet.</p>
+                    <i data-lucide="package-open" size="48"></i>
+                    <p style="color:var(--text-muted); margin-top:10px;">No products available yet.</p>
                 </div>`;
                 lucide.createIcons();
                 return;
             }
-            // Display all initially
-            grid.innerHTML = products.map(generateCard).join('');
+            grid.innerHTML = DATABASE.products.map(generateCard).join('');
             lucide.createIcons();
         }
 
@@ -534,7 +612,7 @@
             btn.classList.add('active');
             
             const grid = document.getElementById('product-grid');
-            const filtered = cat === 'all' ? products : products.filter(p => p.cat === cat);
+            const filtered = cat === 'all' ? DATABASE.products : DATABASE.products.filter(p => p.cat === cat);
             
             if(filtered.length === 0) {
                 grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-muted);">No items found in this category.</div>`;
@@ -545,14 +623,15 @@
         }
 
         function openProduct(id) {
-            currentProduct = products.find(p => p.id === id);
+            currentProduct = DATABASE.products.find(p => p.id === id);
+            if(!currentProduct) return;
+            
             document.getElementById('m-img').src = currentProduct.img;
             document.getElementById('m-title').innerText = currentProduct.name;
             document.getElementById('m-desc').innerText = currentProduct.desc || "No description available.";
             document.getElementById('m-price').innerText = currentProduct.price.toLocaleString() + " RWF";
             document.getElementById('m-tag').innerText = currentProduct.cat.toUpperCase();
 
-            // Toggle Inputs based on type
             if(currentProduct.cat === 'accessory') {
                 document.getElementById('input-qty').classList.remove('hidden');
                 document.getElementById('input-measure').classList.add('hidden');
@@ -561,7 +640,6 @@
                 document.getElementById('input-measure').classList.remove('hidden');
             }
             
-            // Reset values
             document.getElementById('calc-val-m').value = 1;
             document.getElementById('calc-val-q').value = 1;
             
@@ -672,15 +750,14 @@
                 phone: sanitize(document.getElementById('c-phone').value),
                 method: fulfillmentType,
                 address: fulfillmentType === 'Delivery' ? sanitize(document.getElementById('c-address').value) : null,
-                items: [...cart],
+                items: cart.map(c => ({ name: c.name, details: c.details, price: c.finalPrice })),
                 total: orderTotal,
                 status: 'pending'
             };
 
-            orders.push(order);
-            localStorage.setItem('newtextile_orders', JSON.stringify(orders));
+            DATABASE.orders.push(order);
+            notifySubscribers('order-added', order);
             
-            // Construct WhatsApp Message
             let msg = `*NEW ORDER: New Textile*\n`;
             msg += `Customer: ${order.customer}\n`;
             msg += `Phone: ${order.phone}\n`;
@@ -688,17 +765,15 @@
             if(order.address) msg += `Address: ${order.address}\n`;
             msg += `----------------\n`;
             order.items.forEach(i => {
-                msg += `- ${i.name} (${i.details}): ${i.finalPrice.toLocaleString()}\n`;
+                msg += `- ${i.name} (${i.details}): ${i.price.toLocaleString()}\n`;
             });
             msg += `----------------\n`;
             msg += `*TOTAL: ${order.total.toLocaleString()} RWF*`;
 
-            // Clear Cart and Redirect
             cart = [];
             updateCartUI();
             closeModals();
             
-            // Send to Admin WhatsApp (Replace with Company Number)
             const companyPhone = "250795817707"; 
             window.open(`https://wa.me/${companyPhone}?text=${encodeURIComponent(msg)}`, '_blank');
         }
@@ -707,17 +782,6 @@
             document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
         }
     </script>
-   <script type="module"> // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDxb0vzyzj5Ljw596klOL-xNUfZqittGHc",
-  authDomain: "new-textile-rwanda.firebaseapp.com",
-  projectId: "new-textile-rwanda",
-  storageBucket: "new-textile-rwanda.firebasestorage.app",
-  messagingSenderId: "365922587492",
-  appId: "1:365922587492:web:b4dffc60c2f05dd3be2071",
-  measurementId: "G-4X0DJW1051"
-};
-</script>
 
 </body>
 </html>
