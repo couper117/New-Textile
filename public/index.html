@@ -317,471 +317,388 @@
         </div>
     </div>
 
-    <script>
-        // ==================== IN-MEMORY DATABASE ====================
-        // This simulates a real database without needing external services
-        const DATABASE = {
-            products: [],
-            orders: [],
-            subscribers: [] // For real-time updates
-        };
+   <script type="module">
+    // ==================== FIREBASE SETUP ====================
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-        // ==================== REAL-TIME SYSTEM ====================
-        function notifySubscribers(event, data) {
-            DATABASE.subscribers.forEach(callback => {
-                callback(event, data);
-            });
-        }
+    // 🔴 PASTE YOUR FIREBASE CONFIG HERE 🔴
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
 
-        function subscribe(callback) {
-            DATABASE.subscribers.push(callback);
-        }
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
 
-        // ==================== SECURITY ====================
-        function sanitize(str) {
-            if(!str) return '';
-            const temp = document.createElement('div');
-            temp.innerText = str;
-            return temp.innerHTML; 
-        }
+    // ==================== STATE MANAGEMENT ====================
+    let products = [];
+    let orders = [];
+    let cart = [];
+    let currentProduct = null;
+    let fulfillmentType = 'Delivery';
 
-        // ==================== STATE ====================
-        let cart = [];
-        let currentProduct = null;
-        let fulfillmentType = 'Delivery';
+    // ==================== GLOBAL FUNCTIONS (Window Binding) ====================
+    // Because we are using modules, we must attach functions to 'window' to make HTML onclick work
+    
+    window.onload = () => {
+        listenToProducts(); // Real-time listener
+        listenToOrders();   // Real-time listener
+        lucide.createIcons();
+    };
 
-        // ==================== INITIALIZATION ====================
-        window.onload = () => {
-            loadDemoData(); // Load some demo products
+    // --- REAL-TIME LISTENERS ---
+    function listenToProducts() {
+        const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+        onSnapshot(q, (snapshot) => {
+            products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderStore();
-            subscribeToUpdates();
-            lucide.createIcons();
-        };
-
-        function loadDemoData() {
-            // Load demo products so users see something when they open
-            DATABASE.products = [
-                {
-                    id: 1,
-                    name: "Velvet Gold Curtain",
-                    cat: "night",
-                    price: 25000,
-                    desc: "Premium quality velvet curtains with superior light blocking",
-                    img: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23C2410C' width='300' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='white' text-anchor='middle' dy='.3em'%3EVelvet Gold%3C/text%3E%3C/svg%3E"
-                },
-                {
-                    id: 2,
-                    name: "Cotton Day Curtain",
-                    cat: "day",
-                    price: 15000,
-                    desc: "Light, breathable cotton curtains perfect for daytime use",
-                    img: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%239CA3AF' width='300' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='white' text-anchor='middle' dy='.3em'%3ECotton Day%3C/text%3E%3C/svg%3E"
-                },
-                {
-                    id: 3,
-                    name: "Curtain Rings",
-                    cat: "accessory",
-                    price: 500,
-                    desc: "Durable plastic curtain rings for easy installation",
-                    img: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23F59E0B' width='300' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='white' text-anchor='middle' dy='.3em'%3ERings%3C/text%3E%3C/svg%3E"
-                }
-            ];
-        }
-
-        function subscribeToUpdates() {
-            subscribe((event, data) => {
-                if(event === 'product-added' || event === 'product-deleted') {
-                    renderStore();
-                    if(document.getElementById('admin-view').classList.contains('hidden') === false) {
-                        renderAdminInventory();
-                    }
-                }
-                if(event === 'order-added') {
-                    renderAdminOrders();
-                }
-            });
-        }
-
-        // ==================== ADMIN AUTH ====================
-        function checkAdminAccess() {
-            if(sessionStorage.getItem('isAdmin') === 'true') {
-                showAdminPanel();
-            } else {
-                document.getElementById('login-modal').style.display = 'grid';
-            }
-        }
-
-        function attemptLogin() {
-            const pass = document.getElementById('admin-pass').value;
-            const correctPassword = 'admin123'; // Change this to something secure
-            
-            if(pass === correctPassword) { 
-                sessionStorage.setItem('isAdmin', 'true');
-                document.getElementById('login-modal').style.display = 'none';
-                showAdminPanel();
-                document.getElementById('admin-pass').value = '';
-            } else {
-                document.getElementById('login-error').innerText = "❌ Incorrect Password";
-                setTimeout(() => {
-                    document.getElementById('login-error').innerText = '';
-                }, 3000);
-            }
-        }
-
-        function showAdminPanel() {
-            document.getElementById('store-view').classList.add('hidden');
-            document.getElementById('admin-view').classList.remove('hidden');
-            renderAdminInventory();
-            renderAdminOrders();
-        }
-
-        function adminLogout() {
-            sessionStorage.removeItem('isAdmin');
-            document.getElementById('admin-view').classList.add('hidden');
-            document.getElementById('store-view').classList.remove('hidden');
-            renderStore();
-        }
-
-        // ==================== ADMIN: PRODUCT MANAGEMENT ====================
-        function handleAddProduct(e) {
-            e.preventDefault();
-            const fileInput = document.getElementById('p-file');
-            const file = fileInput.files[0];
-
-            if(!file) return alert("Please select an image");
-            if(file.size > 2500000) { 
-                alert("Image too large! Use image < 2.5MB"); 
-                return; 
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                const newProd = {
-                    id: Date.now(),
-                    name: sanitize(document.getElementById('p-name').value),
-                    cat: document.getElementById('p-cat').value,
-                    price: parseFloat(document.getElementById('p-price').value),
-                    desc: sanitize(document.getElementById('p-desc').value),
-                    img: evt.target.result
-                };
-                
-                // Add to database
-                DATABASE.products.push(newProd);
-                
-                // Notify all subscribers (real-time update)
-                notifySubscribers('product-added', newProd);
-                
-                alert("✅ Product Added! Users will see it instantly!");
-                e.target.reset();
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function renderAdminInventory() {
-            const container = document.getElementById('admin-list');
-            if(DATABASE.products.length === 0) {
-                container.innerHTML = '<p style="color:var(--text-muted)">No products yet. Add one above!</p>';
-                return;
-            }
-            container.innerHTML = DATABASE.products.map(p => `
-                <div class="product-item">
-                    <img src="${p.img}">
-                    <div class="product-item-info">
-                        <strong style="font-size:1.1rem;">${p.name}</strong><br>
-                        <span class="status-badge" style="background:#eee; color:#666;">${p.cat}</span>
-                        <span style="margin-left:10px; font-weight:600; color:var(--primary);">${p.price.toLocaleString()} RWF</span>
-                    </div>
-                    <div class="product-item-actions">
-                        <button class="btn btn-outline" style="color:#ef4444; border-color:#ef4444; padding:8px 12px;" onclick="deleteProduct(${p.id})">
-                            <i data-lucide="trash-2" style="width:16px;"></i>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-            lucide.createIcons();
-        }
-
-        function deleteProduct(id) {
-            if(confirm("Delete this product?")) {
-                DATABASE.products = DATABASE.products.filter(p => p.id !== id);
-                notifySubscribers('product-deleted', { id });
+            if(!document.getElementById('admin-view').classList.contains('hidden')) {
                 renderAdminInventory();
             }
-        }
+        });
+    }
 
-        // ==================== ADMIN: ORDER MANAGEMENT ====================
-        function switchAdminTab(tab, btn) {
-            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-            btn.classList.add('active');
-            
-            document.getElementById('tab-inventory').classList.add('hidden');
-            document.getElementById('tab-orders').classList.add('hidden');
-            
-            if(tab === 'inventory') {
-                document.getElementById('tab-inventory').classList.remove('hidden');
-            } else {
-                document.getElementById('tab-orders').classList.remove('hidden');
-            }
-        }
-
-        function renderAdminOrders() {
-            const list = document.getElementById('orders-list');
-            if(DATABASE.orders.length === 0) { 
-                list.innerHTML = "<p style='color:var(--text-muted)'>No orders yet.</p>"; 
-                return; 
-            }
-
-            list.innerHTML = DATABASE.orders.slice().reverse().map(o => `
-                <div class="order-card">
-                    <div style="flex:1; min-width:300px;">
-                        <div class="order-header">
-                            <strong><i data-lucide="hash"></i> ${o.id.toString().slice(-6)}</strong>
-                            <span class="status-badge ${o.method === 'Delivery' ? 'status-delivery' : 'status-pickup'}">${o.method}</span>
-                        </div>
-                        <p style="margin-bottom:5px;"><strong>Customer:</strong> ${o.customer}</p>
-                        <p style="margin-bottom:5px;"><strong>Phone:</strong> ${o.phone}</p>
-                        <p style="margin-bottom:10px;"><strong>Address:</strong> ${o.address || 'Shop Pickup'}</p>
-                        <div style="background:#f8fafc; padding:10px; border-radius:8px; font-size:0.9rem;">
-                            ${o.items.map(i => `<div>• ${i.name} (${i.details})</div>`).join('')}
-                        </div>
-                        <p style="margin-top:15px; font-weight:700; font-size:1.1rem; color:var(--primary);">Total: ${o.total.toLocaleString()} RWF</p>
-                    </div>
-                    <div style="display:flex; flex-direction:column; gap:10px; justify-content:center; min-width:180px;">
-                        <button class="btn btn-success" onclick="respondOnWhatsApp('${o.phone}', '${o.customer}', ${o.id})">
-                            <i data-lucide="message-circle"></i> Reply on WhatsApp
-                        </button>
-                        <button class="btn btn-outline" onclick="deleteOrder(${o.id})">
-                            <i data-lucide="archive"></i> Archive
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-            lucide.createIcons();
-        }
-
-        function respondOnWhatsApp(phone, name, orderId) {
-            let p = phone.replace(/\D/g,'');
-            if(p.startsWith('0')) p = '250' + p.substring(1);
-            
-            const msg = `Hello ${name}, thank you for ordering from New Textile (Order #${orderId.toString().slice(-6)}). We have received your request.`;
-            window.open(`https://wa.me/${p}?text=${encodeURIComponent(msg)}`, '_blank');
-        }
-
-        function deleteOrder(id) {
-            if(confirm("Archive this order?")) {
-                DATABASE.orders = DATABASE.orders.filter(o => o.id !== id);
+    function listenToOrders() {
+        const q = query(collection(db, "orders"), orderBy("date", "desc"));
+        onSnapshot(q, (snapshot) => {
+            orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            if(!document.getElementById('admin-view').classList.contains('hidden')) {
                 renderAdminOrders();
             }
-        }
+        });
+    }
 
-        // ==================== STORE & PRODUCTS ====================
-        function renderStore() {
-            const grid = document.getElementById('product-grid');
-            if(DATABASE.products.length === 0) {
-                grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:50px;">
-                    <i data-lucide="package-open" size="48"></i>
-                    <p style="color:var(--text-muted); margin-top:10px;">No products available yet.</p>
-                </div>`;
-                lucide.createIcons();
-                return;
-            }
-            grid.innerHTML = DATABASE.products.map(generateCard).join('');
-            lucide.createIcons();
+    // --- ADMIN AUTH ---
+    window.checkAdminAccess = function() {
+        if(sessionStorage.getItem('isAdmin') === 'true') {
+            window.showAdminPanel();
+        } else {
+            document.getElementById('login-modal').style.display = 'grid';
         }
+    }
 
-        function generateCard(p) {
-            return `
-                <div class="card" onclick="openProduct(${p.id})">
-                    <div class="card-img">
-                        <span class="card-tag">${p.cat.toUpperCase()}</span>
-                        <img src="${p.img}" alt="${p.name}">
+    window.attemptLogin = function() {
+        const pass = document.getElementById('admin-pass').value;
+        if(pass === 'admin123') { // Simple check
+            sessionStorage.setItem('isAdmin', 'true');
+            document.getElementById('login-modal').style.display = 'none';
+            window.showAdminPanel();
+            document.getElementById('admin-pass').value = '';
+        } else {
+            document.getElementById('login-error').innerText = "❌ Incorrect Password";
+        }
+    }
+
+    window.showAdminPanel = function() {
+        document.getElementById('store-view').classList.add('hidden');
+        document.getElementById('admin-view').classList.remove('hidden');
+        renderAdminInventory();
+        renderAdminOrders();
+    }
+
+    window.adminLogout = function() {
+        sessionStorage.removeItem('isAdmin');
+        document.getElementById('admin-view').classList.add('hidden');
+        document.getElementById('store-view').classList.remove('hidden');
+        renderStore();
+    }
+
+    window.switchAdminTab = function(tab, btn) {
+        document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-inventory').classList.add('hidden');
+        document.getElementById('tab-orders').classList.add('hidden');
+        if(tab === 'inventory') document.getElementById('tab-inventory').classList.remove('hidden');
+        else document.getElementById('tab-orders').classList.remove('hidden');
+    }
+
+    // --- PRODUCT MANAGEMENT (DATABASE) ---
+    window.handleAddProduct = async function(e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        const originalText = btn.innerText;
+        btn.innerText = "Uploading...";
+        btn.disabled = true;
+
+        const file = document.getElementById('p-file').files[0];
+        
+        try {
+            // 1. Upload Image to Firebase Storage
+            const storageRef = ref(storage, 'products/' + Date.now() + '-' + file.name);
+            await uploadBytes(storageRef, file);
+            const imageUrl = await getDownloadURL(storageRef);
+
+            // 2. Save Data to Firestore
+            await addDoc(collection(db, "products"), {
+                name: document.getElementById('p-name').value,
+                cat: document.getElementById('p-cat').value,
+                price: parseFloat(document.getElementById('p-price').value),
+                desc: document.getElementById('p-desc').value,
+                img: imageUrl,
+                createdAt: Date.now()
+            });
+
+            alert("✅ Product Saved to Database!");
+            e.target.reset();
+        } catch (error) {
+            console.error(error);
+            alert("Error saving product: " + error.message);
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    window.deleteProduct = async function(id) {
+        if(confirm("Delete this product permanently?")) {
+            await deleteDoc(doc(db, "products", id));
+        }
+    }
+
+    // --- STORE RENDERING ---
+    function renderStore() {
+        const grid = document.getElementById('product-grid');
+        if(products.length === 0) {
+            grid.innerHTML = '<p style="padding:40px; text-align:center;">Loading products...</p>';
+            return;
+        }
+        // Check for active filter
+        const activeTab = document.querySelector('.tab.active');
+        const filter = activeTab ? activeTab.innerText.toLowerCase() : 'all';
+        
+        // Re-run filter logic to show correct items
+        if(filter.includes('night')) window.filterProducts('night', activeTab);
+        else if(filter.includes('day')) window.filterProducts('day', activeTab);
+        else if(filter.includes('access')) window.filterProducts('accessory', activeTab);
+        else window.filterProducts('all', document.querySelector('.tab:first-child'));
+    }
+
+    window.filterProducts = function(cat, btn) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        if(btn) btn.classList.add('active');
+        
+        const grid = document.getElementById('product-grid');
+        const filtered = cat === 'all' ? products : products.filter(p => p.cat === cat);
+        
+        grid.innerHTML = filtered.map(p => `
+            <div class="card" onclick="openProduct('${p.id}')">
+                <div class="card-img">
+                    <span class="card-tag">${p.cat.toUpperCase()}</span>
+                    <img src="${p.img}" alt="${p.name}">
+                </div>
+                <div class="card-info">
+                    <h3>${p.name}</h3>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="color:var(--primary); font-weight:700;">${p.price.toLocaleString()} RWF</span>
                     </div>
-                    <div class="card-info">
-                        <h3>${p.name}</h3>
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="color:var(--primary); font-weight:700;">${p.price.toLocaleString()} RWF</span>
-                            <span style="font-size:0.8rem; color:var(--text-muted)">${p.cat === 'accessory' ? '/unit' : '/meter'}</span>
-                        </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderAdminInventory() {
+        const container = document.getElementById('admin-list');
+        container.innerHTML = products.map(p => `
+            <div class="product-item">
+                <img src="${p.img}">
+                <div class="product-item-info">
+                    <strong>${p.name}</strong><br>
+                    <span>${p.price.toLocaleString()} RWF</span>
+                </div>
+                <button class="btn btn-outline" style="color:red; border-color:red" onclick="deleteProduct('${p.id}')">
+                    <i data-lucide="trash-2"></i>
+                </button>
+            </div>
+        `).join('');
+        lucide.createIcons();
+    }
+
+    // --- CART & MODALS ---
+    window.openProduct = function(id) {
+        currentProduct = products.find(p => p.id === id);
+        document.getElementById('m-img').src = currentProduct.img;
+        document.getElementById('m-title').innerText = currentProduct.name;
+        document.getElementById('m-desc').innerText = currentProduct.desc;
+        document.getElementById('m-price').innerText = currentProduct.price.toLocaleString() + " RWF";
+        document.getElementById('m-tag').innerText = currentProduct.cat.toUpperCase();
+        
+        // Toggle inputs based on category
+        if(currentProduct.cat === 'accessory') {
+            document.getElementById('input-qty').classList.remove('hidden');
+            document.getElementById('input-measure').classList.add('hidden');
+        } else {
+            document.getElementById('input-qty').classList.add('hidden');
+            document.getElementById('input-measure').classList.remove('hidden');
+        }
+        document.getElementById('product-modal').style.display = 'flex';
+        window.updateTotal();
+    }
+
+    window.updateTotal = function() {
+        let total = 0;
+        if(currentProduct.cat === 'accessory') {
+            total = (document.getElementById('calc-val-q').value || 1) * currentProduct.price;
+        } else {
+            total = (document.getElementById('calc-val-m').value || 1) * currentProduct.price;
+        }
+        document.getElementById('calc-total').innerText = total.toLocaleString() + " RWF";
+    }
+
+    window.addToCart = function() {
+        let details = "", finalPrice = 0;
+        if(currentProduct.cat === 'accessory') {
+            const q = document.getElementById('calc-val-q').value;
+            details = `${q} Units`;
+            finalPrice = q * currentProduct.price;
+        } else {
+            const m = document.getElementById('calc-val-m').value;
+            details = `${m} Meters`;
+            finalPrice = m * currentProduct.price;
+        }
+        cart.push({ ...currentProduct, details, finalPrice, cartId: Date.now() });
+        updateCartUI();
+        window.closeModals();
+    }
+
+    function updateCartUI() {
+        document.getElementById('cart-count').innerText = cart.length;
+        const container = document.getElementById('cart-items');
+        let subtotal = 0;
+        
+        container.innerHTML = cart.map((c, idx) => {
+            subtotal += c.finalPrice;
+            return `
+                <div style="display:flex; gap:15px; margin-bottom:15px;">
+                    <img src="${c.img}" style="width:50px; height:50px; border-radius:5px; object-fit:cover;">
+                    <div style="flex:1">
+                        <b>${c.name}</b><br>
+                        <small>${c.details}</small>
+                    </div>
+                    <div style="text-align:right">
+                        <b>${c.finalPrice.toLocaleString()}</b><br>
+                        <a href="#" onclick="removeFromCart(${idx})" style="color:red; font-size:0.8rem">Remove</a>
                     </div>
                 </div>
             `;
-        }
-
-        function filterProducts(cat, btn) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            btn.classList.add('active');
-            
-            const grid = document.getElementById('product-grid');
-            const filtered = cat === 'all' ? DATABASE.products : DATABASE.products.filter(p => p.cat === cat);
-            
-            if(filtered.length === 0) {
-                grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-muted);">No items found in this category.</div>`;
-            } else {
-                grid.innerHTML = filtered.map(generateCard).join('');
-            }
-            lucide.createIcons();
-        }
-
-        function openProduct(id) {
-            currentProduct = DATABASE.products.find(p => p.id === id);
-            if(!currentProduct) return;
-            
-            document.getElementById('m-img').src = currentProduct.img;
-            document.getElementById('m-title').innerText = currentProduct.name;
-            document.getElementById('m-desc').innerText = currentProduct.desc || "No description available.";
-            document.getElementById('m-price').innerText = currentProduct.price.toLocaleString() + " RWF";
-            document.getElementById('m-tag').innerText = currentProduct.cat.toUpperCase();
-
-            if(currentProduct.cat === 'accessory') {
-                document.getElementById('input-qty').classList.remove('hidden');
-                document.getElementById('input-measure').classList.add('hidden');
-            } else {
-                document.getElementById('input-qty').classList.add('hidden');
-                document.getElementById('input-measure').classList.remove('hidden');
-            }
-            
-            document.getElementById('calc-val-m').value = 1;
-            document.getElementById('calc-val-q').value = 1;
-            
-            updateTotal();
-            document.getElementById('product-modal').style.display = 'flex';
-        }
-
-        function updateTotal() {
-            let total = 0;
-            if(currentProduct.cat === 'accessory') {
-                const q = document.getElementById('calc-val-q').value || 0;
-                total = q * currentProduct.price;
-            } else {
-                const m = document.getElementById('calc-val-m').value || 0;
-                total = m * currentProduct.price;
-            }
-            document.getElementById('calc-total').innerText = total.toLocaleString() + " RWF";
-        }
-
-        function addToCart() {
-            let details = "";
-            let finalPrice = 0;
-
-            if(currentProduct.cat === 'accessory') {
-                const q = document.getElementById('calc-val-q').value;
-                details = `${q} Units`;
-                finalPrice = q * currentProduct.price;
-            } else {
-                const m = document.getElementById('calc-val-m').value;
-                details = `${m} Meters`;
-                finalPrice = m * currentProduct.price;
-            }
-
-            cart.push({ ...currentProduct, details, finalPrice, cartId: Date.now() });
-            updateCartUI();
-            closeModals();
-        }
-
-        function updateCartUI() {
-            document.getElementById('cart-count').innerText = cart.length;
-            const container = document.getElementById('cart-items');
-            
-            if(cart.length === 0) {
-                container.innerHTML = `<p style="text-align:center; color:var(--text-muted); margin-top:50px;">Your cart is empty.</p>`;
-                document.getElementById('cart-subtotal').innerText = "0 RWF";
-                return;
-            }
-
-            let subtotal = 0;
-            container.innerHTML = cart.map((c, index) => {
-                subtotal += c.finalPrice;
-                return `
-                <div style="display:flex; gap:15px; margin-bottom:20px; align-items:center;">
-                    <img src="${c.img}" style="width:60px; height:60px; border-radius:8px; object-fit:cover;">
-                    <div style="flex:1;">
-                        <h4 style="font-size:0.95rem; margin-bottom:4px;">${c.name}</h4>
-                        <div style="font-size:0.85rem; color:var(--text-muted);">${c.details}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="font-weight:600;">${c.finalPrice.toLocaleString()}</div>
-                        <button onclick="removeFromCart(${index})" style="color:red; font-size:0.75rem; background:none; border:none; cursor:pointer; text-decoration:underline;">Remove</button>
-                    </div>
-                </div>`;
-            }).join('');
-            
-            document.getElementById('cart-subtotal').innerText = subtotal.toLocaleString() + " RWF";
-            document.getElementById('checkout-total').innerText = subtotal.toLocaleString() + " RWF";
-        }
-
-        function removeFromCart(index) {
-            cart.splice(index, 1);
-            updateCartUI();
-        }
-
-        function toggleCart() { document.getElementById('cart-bar').classList.toggle('open'); }
+        }).join('');
         
-        function openCheckout() { 
-            if(cart.length === 0) return alert("Please add items to cart first.");
-            toggleCart();
-            document.getElementById('checkout-modal').style.display = 'grid'; 
+        document.getElementById('cart-subtotal').innerText = subtotal.toLocaleString() + " RWF";
+        document.getElementById('checkout-total').innerText = subtotal.toLocaleString();
+    }
+
+    window.removeFromCart = function(idx) {
+        cart.splice(idx, 1);
+        updateCartUI();
+    }
+
+    window.toggleCart = function() {
+        document.getElementById('cart-bar').classList.toggle('open');
+    }
+
+    window.closeModals = function() {
+        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+    }
+
+    // --- CHECKOUT & ORDERS ---
+    window.openCheckout = function() {
+        if(cart.length === 0) return alert("Cart is empty");
+        window.toggleCart();
+        document.getElementById('checkout-modal').style.display = 'grid';
+    }
+
+    window.setFulfillment = function(type) {
+        fulfillmentType = type;
+        document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+        if(type === 'Delivery') {
+            document.getElementById('opt-delivery').classList.add('active');
+            document.getElementById('addr-box').classList.remove('hidden');
+            document.getElementById('pickup-msg').classList.add('hidden');
+        } else {
+            document.getElementById('opt-pickup').classList.add('active');
+            document.getElementById('addr-box').classList.add('hidden');
+            document.getElementById('pickup-msg').classList.remove('hidden');
         }
+    }
 
-        function setFulfillment(type) {
-            fulfillmentType = type;
-            document.getElementById('opt-delivery').classList.remove('active');
-            document.getElementById('opt-pickup').classList.remove('active');
-            
-            if(type === 'Delivery') {
-                document.getElementById('opt-delivery').classList.add('active');
-                document.getElementById('addr-box').classList.remove('hidden');
-                document.getElementById('pickup-msg').classList.add('hidden');
-                document.getElementById('c-address').required = true;
-            } else {
-                document.getElementById('opt-pickup').classList.add('active');
-                document.getElementById('addr-box').classList.add('hidden');
-                document.getElementById('pickup-msg').classList.remove('hidden');
-                document.getElementById('c-address').required = false;
-            }
-        }
+    window.submitOrder = async function(e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.innerText = "Processing...";
 
-        function submitOrder(e) {
-            e.preventDefault();
-            const orderTotal = cart.reduce((acc, c) => acc + c.finalPrice, 0);
-            
-            const order = {
-                id: Date.now(),
-                customer: sanitize(document.getElementById('c-name').value),
-                phone: sanitize(document.getElementById('c-phone').value),
-                method: fulfillmentType,
-                address: fulfillmentType === 'Delivery' ? sanitize(document.getElementById('c-address').value) : null,
-                items: cart.map(c => ({ name: c.name, details: c.details, price: c.finalPrice })),
-                total: orderTotal,
-                status: 'pending'
-            };
+        const total = cart.reduce((acc, c) => acc + c.finalPrice, 0);
+        const order = {
+            customer: document.getElementById('c-name').value,
+            phone: document.getElementById('c-phone').value,
+            method: fulfillmentType,
+            address: fulfillmentType === 'Delivery' ? document.getElementById('c-address').value : 'Shop Pickup',
+            items: cart.map(c => ({ name: c.name, details: c.details, price: c.finalPrice })),
+            total: total,
+            date: Date.now()
+        };
 
-            DATABASE.orders.push(order);
-            notifySubscribers('order-added', order);
+        try {
+            // Save to Firestore
+            const docRef = await addDoc(collection(db, "orders"), order);
             
-            let msg = `*NEW ORDER: New Textile*\n`;
-            msg += `Customer: ${order.customer}\n`;
-            msg += `Phone: ${order.phone}\n`;
-            msg += `Method: ${order.method}\n`;
+            // WhatsApp Message
+            let msg = `*NEW ORDER #${docRef.id.slice(0,5)}*\nName: ${order.customer}\nPhone: ${order.phone}\nMethod: ${order.method}\n`;
             if(order.address) msg += `Address: ${order.address}\n`;
             msg += `----------------\n`;
-            order.items.forEach(i => {
-                msg += `- ${i.name} (${i.details}): ${i.price.toLocaleString()}\n`;
-            });
-            msg += `----------------\n`;
-            msg += `*TOTAL: ${order.total.toLocaleString()} RWF*`;
-
+            order.items.forEach(i => msg += `- ${i.name} (${i.details})\n`);
+            msg += `----------------\n*TOTAL: ${order.total.toLocaleString()} RWF*`;
+            
+            window.open(`https://wa.me/250795817707?text=${encodeURIComponent(msg)}`, '_blank');
+            
             cart = [];
             updateCartUI();
-            closeModals();
-            
-            const companyPhone = "250795817707"; 
-            window.open(`https://wa.me/${companyPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+            window.closeModals();
+        } catch (err) {
+            alert("Error placing order");
+            console.error(err);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Send Order via WhatsApp";
         }
+    }
 
-        function closeModals() {
-            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+    function renderAdminOrders() {
+        const container = document.getElementById('orders-list');
+        if(orders.length === 0) {
+            container.innerHTML = "<p>No orders found.</p>";
+            return;
         }
-    </script>
+        container.innerHTML = orders.map(o => `
+            <div class="order-card">
+                <div style="flex:1">
+                    <strong>${o.customer}</strong> <span class="status-badge">${o.method}</span><br>
+                    <small>${o.phone}</small><br>
+                    <small>${o.address || ''}</small>
+                    <div style="background:#f8fafc; padding:8px; margin-top:5px; font-size:0.9rem">
+                        ${o.items.map(i => `<div>${i.name} (${i.details})</div>`).join('')}
+                    </div>
+                    <div style="margin-top:5px; font-weight:bold; color:var(--primary)">${o.total.toLocaleString()} RWF</div>
+                </div>
+                <button class="btn btn-outline" style="height:fit-content" onclick="deleteOrder('${o.id}')">Archive</button>
+            </div>
+        `).join('');
+    }
+
+    window.deleteOrder = async function(id) {
+        if(confirm("Archive this order?")) {
+            await deleteDoc(doc(db, "orders", id));
+        }
+    }
+</script>
+
 
 </body>
 </html>
